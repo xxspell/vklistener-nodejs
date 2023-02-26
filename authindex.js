@@ -3,8 +3,11 @@ import puppeteer from 'puppeteer';
 import fs from 'fs';
 import readline from 'readline';
 import VKCaptchaSolver from 'vk-captchasolver'
-import prompt from 'prompt-sync'
+import promptSync from 'prompt-sync'
 import download from 'image-downloader'
+
+
+
 
 
 (async () => {
@@ -31,45 +34,41 @@ import download from 'image-downloader'
     await page.waitForNavigation({
         waitUntil: 'networkidle0',
       });
-    if (await page.$('.vkc__Captcha__image') !== null) {
-        console.log(`Решаю капчу`)
-        // await page.waitForSelector('.vkc__Captcha__image img');
-        // console.log(`дождался ссылка`)
-        const captcha_url = await page.$eval('.vkc__Captcha__image', (el) => el.getAttribute('src'));
-        console.log(`ссылка есть ${captcha_url}`)
-        const response = await fetch(captcha_url);
-            const bufferr = await response.buffer();
-            fs.writeFile(`captcha/image.jpg`, bufferr, () => 
-              console.log('В /captcha сохранено изображение капчи, откройте его и разгадайте шифр'));
-
-
-
-//         const options = {
-//             url: '${captcha_url}',
-//             dest: '/images',               // will be saved to /path/to/dest/image.jpg
-//           };
-// ;
-//           download.image(options)
-//           .then(({ filename }) => {
-//             console.log('Saved to', filename); // saved to /path/to/dest/image.jpg
-//           })
-//           .catch((err) => console.error(err));
-//           download.image()   
-    const captchadone = prompt("Какой шифр?  ");
-
-
-    await page.type('vkc__TextField__input', captchadone);
-        console.log(`сзаписал рез`)
+      function sleep(ms) { 
+        return new Promise((resolve) => { 
+            setTimeout(resolve, ms); 
+        }); 
+    } 
+      async function captchaSolving() {
+        await page.screenshot({ path: 'captcha.png', fullPage: true });
+        console.log('В captcha.png находится капча, откройте его и разгадайте шифр');
+        const prompt = promptSync();   
+        const captchadone = prompt("Какой шифр?  ");
+        await page.type('.vkc__TextField__input', captchadone);
         await page.click('.vkuiButton__in');
-        console.log(`доне`)
+        await sleep(4000); 
+        if (await page.$('.vkc__Captcha__image') !== null) {
+            console.log(`Кажется капча неверная, попробуем снова`)
+            captchaSolving ();
+        } else {
+                console.log(`Капча успешно пройдена`);
+            }
+        
+}
 
 
+
+    if (await page.$('.vkc__Captcha__image') !== null) {
+        console.log(`Вылезла капча`)
+        captchaSolving ();
+        
+            
         
         
     } else {
-        console.log(`неРешаю капчу`)
+        console.log(`Повезло, что капчи нет`)
     }
-	await page.waitForSelector('.vkc__Password__Wrapper');
+	await page.waitForSelector('.vkc__Password__Wrapper', {timeout: 120000});
         await page.type('.vkc__Password__Wrapper', password);
         await page.click('.vkuiButton');
     if (await page.$('.vkc__TextField__errorMessage') !== null) {
