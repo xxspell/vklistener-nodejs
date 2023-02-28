@@ -2,9 +2,7 @@ console.log(`Forked by xxspell | https://github.com/xxspell`);
 import puppeteer from 'puppeteer';
 import fs from 'fs';
 import readline from 'readline';
-import VKCaptchaSolver from 'vk-captchasolver'
-import promptSync from 'prompt-sync'
-import download from 'image-downloader'
+import promptSync from 'prompt-sync';
 
 
 
@@ -47,12 +45,7 @@ import download from 'image-downloader'
         await page.type('.vkc__TextField__input', captchadone);
         await page.click('.vkuiButton__in');
         await sleep(4000); 
-        if (await page.$('.vkc__Captcha__image') !== null) {
-            console.log(`Кажется капча неверная, попробуем снова`)
-            captchaSolving ();
-        } else {
-                console.log(`Капча успешно пройдена`);
-            }
+        
         
 }
 
@@ -61,34 +54,44 @@ import download from 'image-downloader'
     if (await page.$('.vkc__Captcha__image') !== null) {
         console.log(`Вылезла капча`)
         captchaSolving ();
-        
-            
-        
-        
+        await sleep(2000)
+        if (await page.$('.vkc__Captcha__image') !== null) {
+            await console.log(`Кажется капча неверная, попробуем снова`)
+            captchaSolving ();
+        } else {
+                await console.log(`Капча успешно пройдена`);
+            }
     } else {
         console.log(`Повезло, что капчи нет`)
     }
 	await page.waitForSelector('.vkc__Password__Wrapper', {timeout: 120000});
         await page.type('.vkc__Password__Wrapper', password);
         await page.click('.vkuiButton');
-    if (await page.$('.vkc__TextField__errorMessage') !== null) {
-            
-    console.log(`Походу неверный пароль`)
-      
+        await sleep(4000); 
+    if (await page.$('.vkc__TextField__errorMessage') !== null) {     
+    console.log(`Походу неверный пароль, скип`)
+    // <div class="vkc__TextField__errorMessage">Неверный пароль</div>
 
     } else {
-        console.log(`ессс`)
-        }
-        await page.waitForNavigation();
-        const cookies = await page.cookies();
-        const resCookies = [];
-        for (let i = 0; i < cookies.length; i++) {
-            resCookies.push(`${cookies[i].name}=${cookies[i].value}`);
-        }
-        sessions.push(resCookies.join('; '));
-        await fs.promises.writeFile('sessions.json', JSON.stringify(sessions));
-        console.log(`Сессия аккаунта ${login} ${password} сохранена`);
-        await context.close();
+        await console.log(`ессс`)
+        await sleep(4000);
+        if (await page.$('.login_blocked_wrap') !== null) {
+            console.log(`Аккаунт заблокирован, скип`);
+        } else {
+            // await page.waitForNavigation();
+            const cookies = await page.cookies();
+            const resCookies = [];
+            for (let i = 0; i < cookies.length; i++) {
+                resCookies.push(`${cookies[i].name}=${cookies[i].value}`);
+            }
+            sessions.push(resCookies.join('; '));
+            await fs.promises.writeFile('sessions.json', JSON.stringify(sessions));
+            console.log(`Сессия аккаунта ${login} ${password} сохранена`);
+            
+        
+        };
+        await context.close();};
+        
     }
     await browser.close();
 })();
