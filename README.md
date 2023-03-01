@@ -35,9 +35,9 @@ npm install
 
 Запустите накрутку
 ```bash
- node audioindex.js
+ node audioindex.js <link playlist>
 ``` 
-
+<link playlist> - ссылка на плейлист(Например: https://vk.com/audios****35161?z=audio_playlist58******1_18*)
 
 
 
